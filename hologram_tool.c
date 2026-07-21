@@ -1,10 +1,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
-#include <fftw3.h>
 #include <png.h>
 
-// Three Gaussians object
 double object(double x, double y) {
     double r1 = exp(-((x+30)*(x+30) + (y+20)*(y+20)) / 200.0);
     double r2 = exp(-((x-40)*(x-40) + (y-25)*(y-25)) / 300.0);
@@ -43,54 +41,51 @@ int main(int argc, char *argv[]) {
     double kx = atof(argv[3]), ky = atof(argv[4]);
     int mode = atoi(argv[5]);
 
-    fftw_complex *U_obj = fftw_malloc(sizeof(fftw_complex) * NX * NY);
-    fftw_complex *U_fft = fftw_malloc(sizeof(fftw_complex) * NX * NY);
-    fftw_plan plan_fwd = fftw_plan_dft_2d(NY, NX, U_obj, U_fft, FFTW_FORWARD, FFTW_ESTIMATE);
-
-    for (int y = 0; y < NY; y++) {
-        for (int x = 0; x < NX; x++) {
-            U_obj[y*NX + x][0] = object(x - NX/2.0, y - NY/2.0);
-            U_obj[y*NX + x][1] = 0.0;
-        }
-    }
-    fftw_execute(plan_fwd);
-
     unsigned char *holo = (unsigned char*) malloc((size_t)NX * (size_t)NY);
     double minVal = 1e9, maxVal = -1e9;
     double *raw_vals = malloc(sizeof(double) * NX * NY);
 
     for (int y = 0; y < NY; y++) {
         for (int x = 0; x < NX; x++) {
-            double re = U_fft[y*NX + x][0], im = U_fft[y*NX + x][1];
-            double phase = kx * x + ky * y;
-            double field_re = re + cos(phase), field_im = im + sin(phase);
+            double X = x - NX / 2.0;
+            double Y = y - NY / 2.0;
+
+            double O = object(X, Y);
+
+            double phase = kx * X + ky * Y;
+            double ref_re = cos(phase);
+            double ref_im = sin(phase);
+
+            double field_re = O + ref_re;
+            double field_im = ref_im;
+
             double val;
-            if (mode == 0) val = field_re*field_re + field_im*field_im;
-            else if (mode == 1) val = sqrt(field_re*field_re + field_im*field_im);
-            else val = (atan2(field_im, field_re) + M_PI) / (2*M_PI);
-            raw_vals[y*NX + x] = val;
+            if (mode == 0) {
+                val = field_re * field_re + field_im * field_im;
+            } else if (mode == 1) {
+                val = sqrt(field_re * field_re + field_im * field_im);
+            } else {
+                val = (atan2(field_im, field_re) + M_PI) / (2.0 * M_PI);
+            }
+
+            raw_vals[y * NX + x] = val;
             if (val < minVal) minVal = val;
             if (val > maxVal) maxVal = val;
         }
     }
 
     for (int i = 0; i < NX * NY; i++) {
-        if (mode == 2) {
-            holo[i] = (unsigned char)(255.0 * raw_vals[i]);
+        double range = maxVal - minVal;
+        if (range > 0) {
+            double normalized = (raw_vals[i] - minVal) / range;
+            holo[i] = (unsigned char)(255.0 * normalized);
         } else {
-            double range = maxVal - minVal;
-            if (range > 0) {
-                double normalized = (raw_vals[i] - minVal) / range;
-                // Linear scaling applied here to fix dark images
-                holo[i] = (unsigned char)(255.0 * normalized);
-            } else {
-                holo[i] = 0;
-            }
+            holo[i] = 0;
         }
     }
 
     save_png(argv[6], holo, NX, NY);
-    free(raw_vals); free(holo); fftw_destroy_plan(plan_fwd);
-    fftw_free(U_obj); fftw_free(U_fft);
+    free(raw_vals);
+    free(holo);
     return 0;
 }
