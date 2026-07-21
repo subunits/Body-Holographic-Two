@@ -1,0 +1,62 @@
+\documentclass[10pt,article]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[margin=0.75in]{geometry}
+\usepackage[fleqn]{amsmath}
+\usepackage{amssymb}
+\usepackage{booktabs}
+
+\title{\vspace{-1.5cm}Holographic Storage Quick Reference}
+\author{}
+\date{}
+
+\begin{document}
+
+\maketitle
+\vspace{-1cm}
+
+\subsection*{Key Formulas}
+\begin{flalign*}
+    &\Delta\theta_{\text{FWHM}} \approx \frac{\lambda}{2 n L \cos\theta_B} &\\
+    &\kappa = \frac{\pi \Delta n}{\lambda \cos\theta_B} &\\
+    &\eta_{\max} = \sin^2(\kappa L) &\\
+    &N_{\text{pages}} \approx \frac{\Theta_{\text{total}}}{2 \Delta\theta_{\text{FWHM}}} &
+\end{flalign*}
+
+\subsection*{Design Workflow}
+\begin{enumerate}
+    \setlength{\itemsep}{0pt}
+    \setlength{\parskip}{0pt}
+    \item Pick laser wavelength ($\lambda$).
+    \item Choose material ($n$, $\Delta n$).
+    \item Set thickness ($L$).
+    \item Choose Bragg angle ($\theta_B$).
+    \item Compute $\Delta\theta_{\text{FWHM}}$.
+    \item Compute $\kappa$ and $\eta_{\max}$.
+    \item Set angular budget $\Theta_{\text{total}}$.
+    \item Estimate max pages ($N$).
+    \item Adjust $L$, $\Delta n$, $\theta_B$ to balance capacity vs.\ efficiency.
+\end{enumerate}
+
+\subsection*{Common Materials}
+\noindent
+\begin{tabular}{@{} lccc @{}}
+    \toprule
+    \textbf{Material} & \textbf{$n$} & \textbf{$\Delta n$ range} & \textbf{Notes} \\
+    \midrule
+    Photopolymer & $1.5\text{--}1.6$ & $1\times 10^{-4} \text{--} 1\times 10^{-3}$ & High $\Delta n$, write-once \\
+    $\text{LiNbO}_3$ (doped) & $\sim 2.2$ & $1\times 10^{-5} \text{--} 1\times 10^{-4}$ & Rewritable, low $\Delta n$ \\
+    $\text{BaTiO}_3$ & $\sim 2.4$ & $1\times 10^{-5} \text{--} 1\times 10^{-4}$ & High sensitivity, unstable \\
+    PMMA (doped) & $\sim 1.49$ & $1\times 10^{-5} \text{--} 1\times 10^{-4}$ & Stable, low sensitivity \\
+    \bottomrule
+\end{tabular}
+
+\subsection*{Rules of Thumb}
+\begin{itemize}
+    \setlength{\itemsep}{0pt}
+    \setlength{\parskip}{0pt}
+    \item \textbf{Thicker} = more pages, sharper selectivity.
+    \item \textbf{Higher $\Delta n$} = stronger efficiency.
+    \item \textbf{Shorter $\lambda$} = narrower selectivity.
+\end{itemize}
+
+\end{document}
