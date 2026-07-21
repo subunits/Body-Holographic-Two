@@ -56,7 +56,7 @@ int main(int argc, char *argv[]) {
     fftw_execute(plan_fwd);
 
     unsigned char *holo = (unsigned char*) malloc((size_t)NX * (size_t)NY);
-    double maxVal = 0.0;
+    double minVal = 1e9, maxVal = -1e9;
     double *raw_vals = malloc(sizeof(double) * NX * NY);
 
     for (int y = 0; y < NY; y++) {
@@ -69,12 +69,23 @@ int main(int argc, char *argv[]) {
             else if (mode == 1) val = sqrt(field_re*field_re + field_im*field_im);
             else val = (atan2(field_im, field_re) + M_PI) / (2*M_PI);
             raw_vals[y*NX + x] = val;
+            if (val < minVal) minVal = val;
             if (val > maxVal) maxVal = val;
         }
     }
 
     for (int i = 0; i < NX * NY; i++) {
-        holo[i] = (mode == 2) ? (unsigned char)(255.0 * raw_vals[i]) : (maxVal > 0 ? (unsigned char)(255.0 * raw_vals[i] / maxVal) : 0);
+        if (mode == 2) {
+            holo[i] = (unsigned char)(255.0 * raw_vals[i]);
+        } else {
+            double range = maxVal - minVal;
+            if (range > 0) {
+                double normalized = (raw_vals[i] - minVal) / range;
+                holo[i] = (unsigned char)(255.0 * sqrt(normalized));
+            } else {
+                holo[i] = 0;
+            }
+        }
     }
 
     save_png(argv[6], holo, NX, NY);
