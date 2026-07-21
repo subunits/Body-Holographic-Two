@@ -81,7 +81,8 @@ int main(int argc, char *argv[]) {
             double range = maxVal - minVal;
             if (range > 0) {
                 double normalized = (raw_vals[i] - minVal) / range;
-                holo[i] = (unsigned char)(255.0 * sqrt(normalized));
+                // Linear scaling applied here to fix dark images
+                holo[i] = (unsigned char)(255.0 * normalized);
             } else {
                 holo[i] = 0;
             }
